@@ -23,23 +23,35 @@ fastify.get('/buku/detail', async (request, reply) => {
   return buku;
 })
 
-fastify.post('/buku/save', async (request, reply) => {
+fastify.post('/buku/save', async (request, response) => {
   
   const buku = await db.query ("insert into buku (sku, judul, harga, stok)  values ($1, $2, $3, $4)", 
-  [request.body.sku, request.body.judul, request.body.harga, request.body.sku]); 
-  return buku; 
+  [request.body.sku, request.body.judul, request.body.harga, request.body.stok]); 
+  response.send({
+    message : "Berhasil menambahkan data"
+  })
 })
 
-fastify.put('/buku/update/:id', async (request, reply) => {
-  const buku = await db.query ("update buku set sku = $1, judul = $2, harga = $3, stok = $4 where id = $5", 
-  [request.body.sku, request.body.judul, request.body.harga, request.body.sku, request.params.id]); 
-  return buku; 
+fastify.put('/buku/update/:id', async (request, response) => {
+  try {
+  await db.query ("update buku set sku = COALESCE($1, sku), judul = COALESCE($2, judul), harga = COALESCE($3, harga), stok = COALESCE($4,stok) where id = $5", 
+  [request.body.sku, request.body.judul, request.body.harga, request.body.stok, request.params.id]); 
+  response.send({
+    message : "Data berhasil diubah"
+  })
+  } catch (error) {
+    response.code(400).send({
+      message : "Gagal"
+    })
+  }
 })
 
-fastify.delete('/buku/delete/:id', async (request, reply) => {
+fastify.delete('/buku/delete/:id', async (request, response) => {
   const buku = await db.query ("delete from buku where id = $1", 
   [request.params.id]); 
-  return buku;  
+  response.send({
+    message : "Data berhasil dihapus"
+  })  
 })
 
 
